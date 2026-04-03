@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mohamed El Horri — Sysadmin · SOC N1 · Support N1/N2/N3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #00ff88;
+    --green-dim: #00cc6a;
+    --green-muted: rgba(0,255,136,0.10);
+    --green-border: rgba(0,255,136,0.22);
+    --bg:  #090b0e;
+    --bg2: #0e1115;
+    --bg3: #131820;
+    --text: #e2e8f0;
+    --text2: #7a8ea8;
+    --text3: #4a5d73;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+    --radius: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─────────── NOISE OVERLAY ─────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─────────── NAV ─────────── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 54px;
+    background: rgba(9,11,14,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid rgba(0,255,136,0.12);
+  }
+  .nav-brand {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .nav-brand span { color: var(--green); }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a {
+    font-size: 11px;
+    color: var(--text2);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--green); }
+  .nav-cta {
+    font-size: 11px;
+    color: var(--green) !important;
+    border: 0.5px solid var(--green-border);
+    padding: 5px 12px;
+    border-radius: 5px;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--green-muted) !important; }
+
+  /* ─────────── LAYOUT ─────────── */
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  section { padding: 5rem 0 2rem; }
+
+  /* ─────────── SECTION LABEL ─────────── */
+  .sec-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 2rem;
+  }
+  .sec-cmd {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .sec-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .sec-line {
+    flex: 1;
+    height: 0.5px;
+    background: var(--green-border);
+  }
+
+  /* ─────────── HERO ─────────── */
+  #hero {
+    padding-top: 9rem;
+    padding-bottom: 3rem;
+    border-bottom: 0.5px solid rgba(0,255,136,0.1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .topbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg2);
+    border: 0.5px solid rgba(0,255,136,0.15);
+    border-radius: 7px;
+    margin-bottom: 2rem;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.r{background:#ff5f56;} .dot.y{background:#ffbd2e;} .dot.g{background:#27c93f;}
+  .topbar-txt { font-size: 11px; color: var(--text2); letter-spacing: 0.06em; margin-left: 4px; }
+
+  .prompt { font-size: 12px; color: var(--green); letter-spacing: 0.04em; margin-bottom: 1.2rem; opacity: 0.85; }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+  h1 .last { color: var(--green); }
+
+  .hero-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1.8rem;
+  }
+  .role-pill {
+    font-size: 11px;
+    color: var(--green-dim);
+    background: var(--green-muted);
+    border: 0.5px solid var(--green-border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-bio {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.9;
+    max-width: 600px;
+    margin-bottom: 2rem;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 2.5rem;
+  }
+  .hero-meta span { display: flex; align-items: center; gap: 5px; }
+  .hero-meta b { color: var(--text2); }
+
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-primary {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bg);
+    background: var(--green);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    background: transparent;
+    border: 0.5px solid var(--green-border);
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn-ghost:hover { background: var(--green-muted); }
+
+  .cursor {
+    display: inline-block;
+    width: 10px; height: 16px;
+    background: var(--green);
+    vertical-align: middle;
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ─────────── SKILLS ─────────── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .skill-card {
+    background: var(--bg2);
+    border: 0.5px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .skill-card:hover { border-color: var(--green-border); transform: translateY(-2px); }
+  .skill-cat {
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.85;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 11px;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 0.5px solid rgba(255,255,255,0.06);
+    border-radius: 4px;
+    padding: 3px 9px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .tag:hover { border-color: var(--green-border); color: var(--green-dim); }
+
+  /* ─────────── TIMELINE ─────────── */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 6px; bottom: 6px;
+    width: 0.5px;
+    background: linear-gradient(to bottom, var(--green), rgba(0,255,136,0.05));
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-left: 18px;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -4px; top: 7px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px rgba(0,255,136,0.6);
+  }
+  .tl-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .tl-title { font-size: 13px; color: var(--text); font-weight: 600; }
+  .tl-date {
+    font-size: 10px;
+    color: var(--green);
+    background: var(--green-muted);
+    border: 0.5px solid var(--green-border);
+    border-radius: 3px;
+    padding: 2px 8px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .tl-org { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
+  .tl-list { list-style: none; }
+  .tl-list li {
+    font-size: 11.5px;
+    color: var(--text2);
+    line-height: 1.75;
+    padding-left: 14px;
+    position: relative;
+  }
+  .tl-list li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    opacity: 0.7;
+  }
+
+  /* ─────────── PROJECTS ─────────── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 14px;
+  }
+  .proj-card {
+    background: var(--bg2);
+    border: 0.5px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+    padding: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .proj-card:hover { border-color: var(--green-border); transform: translateY(-3px); }
+  .proj-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .proj-icon {
+    width: 32px; height: 32px;
+    border-radius: 7px;
+    background: var(--green-muted);
+    border: 0.5px solid var(--green-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .proj-name { font-size: 12px; color: var(--text); font-weight: 600; }
+  .proj-desc { font-size: 11px; color: var(--text2); line-height: 1.65; margin-bottom: 12px; }
+  .proj-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ptag {
+    font-size: 10px;
+    color: var(--green-dim);
+    background: var(--green-muted);
+    border: 0.5px solid var(--green-border);
+    border-radius: 3px;
+    padding: 2px 7px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ─────────── CERTIFICATIONS ─────────── */
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .cert-card {
+    background: var(--bg2);
+    border: 0.5px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .cert-card:hover { border-color: var(--green-border); }
+  .cert-badge {
+    font-size: 10px;
+    color: var(--green);
+    background: var(--green-muted);
+    border: 0.5px solid var(--green-border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .cert-name { font-size: 12px; color: var(--text); margin-bottom: 3px; }
+  .cert-org { font-size: 10px; color: var(--text2); }
+
+  /* ─────────── EDUCATION ─────────── */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .edu-card {
+    background: var(--bg2);
+    border: 0.5px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+  .edu-card:hover { border-color: var(--green-border); }
+  .edu-date { font-size: 10px; color: var(--green); letter-spacing: 0.08em; margin-bottom: 5px; }
+  .edu-degree { font-size: 12px; color: var(--text); font-weight: 600; margin-bottom: 3px; }
+  .edu-school { font-size: 11px; color: var(--text2); }
+
+  /* ─────────── CONTACT ─────────── */
+  #contact { padding-bottom: 5rem; }
+  .contact-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--green-border);
+    border-radius: 12px;
+    padding: 2.5rem;
+  }
+  .contact-intro {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+  }
+  .contact-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .contact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .contact-label { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+  .contact-val {
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .contact-val:hover { color: var(--green); }
+  .contact-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.5rem; }
+
+  /* ─────────── FOOTER ─────────── */
+  footer {
+    border-top: 0.5px solid rgba(0,255,136,0.1);
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+  }
+
+  /* ─────────── SCROLLBAR ─────────── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.3); border-radius: 2px; }
+
+  /* ─────────── ANIMATIONS ─────────── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─────────── RESPONSIVE ─────────── */
+  @media (max-width: 600px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .wrap { padding: 0 1rem; }
+    h1 { font-size: 2.6rem; }
+    .contact-box { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">M<span>.</span>ElHorri</div>
+  <div class="nav-links">
+    <a href="#skills">Skills</a>
+    <a href="#experience">Expérience</a>
+    <a href="#projects">Projets</a>
+    <a href="#certifications">Certs</a>
+    <a href="#contact" class="nav-cta">Contact</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="topbar-txt">~/portfolio — zsh — 80×24</span>
+    </div>
+    <div class="prompt">▶ whoami</div>
+    <h1>Mohamed<br><span class="last">El Horri</span><span class="cursor"></span></h1>
+    <div class="hero-roles">
+      <span class="role-pill">Administrateur Sys & Réseaux</span>
+      <span class="role-pill">Analyste SOC N1</span>
+      <span class="role-pill">Support N1 / N2 / N3</span>
+      <span class="role-pill">CISSP en cours</span>
+    </div>
+    <p class="hero-bio">
+      Passionné d'informatique depuis toujours, j'opère à la croisée de l'administration système, du support avancé et de la cybersécurité. Actuellement en poste chez Sanofi, j'élargis continuellement mon expertise vers l'analyse SOC et la protection des systèmes d'information.
+    </p>
+    <div class="hero-meta">
+      <span>📍 <b>Meyzieu, France</b></span>
+      <span>📞 <b>+33 7 54 01 52 59</b></span>
+      <span>🌐 <b>Anglais C2 · Français natif · Arabe natif</b></span>
+      <span>🚗 <b>Permis B + véhicule</b></span>
+    </div>
+    <div class="hero-btns">
+      <a class="btn-primary" href="mailto:moh.med994@yahoo.com">moh.med994@yahoo.com</a>
+      <a class="btn-ghost" href="https://github.com/portfolio-med" target="_blank">github.com/portfolio-med ↗</a>
+      <a class="btn-ghost" href="https://www.linkedin.com/in/mohamed-el-horri-79104a215/" target="_blank">LinkedIn ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-label fade-in">
+      <span class="sec-cmd">$ ls -la skills/</span>
+      <span class="sec-title">Compétences</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card fade-in">
+        <div class="skill-cat">// OS & Infra</div>
+        <div class="tags">
+          <span class="tag">Linux</span>
+          <span class="tag">Windows Server</span>
+          <span class="tag">Active Directory</span>
+          <span class="tag">SCCM</span>
+          <span class="tag">Kali Linux</span>
+          <span class="tag">Parrot OS</span>
+        </div>
+      </div>
+      <div class="skill-card fade-in">
+        <div class="skill-cat">// Microsoft 365</div>
+        <div class="tags">
+          <span class="tag">Exchange</span>
+          <span class="tag">SharePoint</span>
+          <span class="tag">Intune</span>
+          <span class="tag">Entra ID</span>
+          <span class="tag">Teams</span>
+          <span class="tag">Admin Center</span>
+        </div>
+      </div>
+      <div class="skill-card fade-in">
+        <div class="skill-cat">// Scripting & Dev</div>
+        <div class="tags">
+          <span class="tag">PowerShell</span>
+          <span class="tag">Python</span>
+          <span class="tag">Bash</span>
+          <span class="tag">PHP</span>
+          <span class="tag">MySQL</span>
+          <span class="tag">Java</span>
+        </div>
+      </div>
+      <div class="skill-card fade-in">
+        <div class="skill-cat">// Cloud</div>
+        <div class="tags">
+          <span class="tag">AWS</span>
+          <span class="tag">Azure</span>
+          <span class="tag">GCP</span>
+          <span class="tag">DevOps</span>
+        </div>
+      </div>
+      <div class="skill-card fade-in">
+        <div class="skill-cat">// Cybersécurité</div>
+        <div class="tags">
+          <span class="tag">Analyse réseau</span>
+          <span class="tag">Incident Response</span>
+          <span class="tag">Wireshark</span>
+          <span class="tag">Nmap</span>
+          <span class="tag">MFA / inwebo</span>
+          <span class="tag">CISSP (en cours)</span>
+        </div>
+      </div>
+      <div class="skill-card fade-in">
+        <div class="skill-cat">// ITSM & Outils</div>
+        <div class="tags">
+          <span class="tag">ServiceNow</span>
+          <span class="tag">BMC Helix</span>
+          <span class="tag">TopDesk</span>
+          <span class="tag">TeamViewer</span>
+          <span class="tag">Dameware</span>
+          <span class="tag">ITIL 4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="wrap">
+    <div class="sec-label fade-in">
+      <span class="sec-cmd">$ cat experience.log</span>
+      <span class="sec-title">Expérience</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="timeline">
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Administrateur Systèmes — Sanofi</div>
+            <div class="tl-org">📍 Marcy-l'Étoile</div>
+          </div>
+          <span class="tl-date">07/2025 → présent</span>
+        </div>
+        <ul class="tl-list">
+          <li>Gestion des incidents via ServiceNow ; responsable de l'onboarding sur site</li>
+          <li>Active Directory : groupes, utilisateurs, droits d'accès</li>
+          <li>Administration Intune, Entra ID, Exchange, SharePoint, M365</li>
+          <li>Contrôles de conformité, surveillance des logs, gestion des équipements (Wimp, SDH, Edentity)</li>
+          <li>Déploiement logiciels via SCCM, configuration MFA</li>
+          <li>Interlocutions techniques en anglais pour les nouvelles fonctionnalités d'infrastructure (Sanofi & Pasteur)</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Consultant Support — Solvay</div>
+            <div class="tl-org">📍 Lyon 03 · Freelance</div>
+          </div>
+          <span class="tl-date">02/2025</span>
+        </div>
+        <ul class="tl-list">
+          <li>Support applicatif, traitement des tickets de commande</li>
+          <li>Gestion des incidents avec BMC Helix</li>
+          <li>Réunions régulières avec clients internationaux</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Formateur Linux — ISITECH</div>
+            <div class="tl-org">📍 Lyon 07 · Freelance</div>
+          </div>
+          <span class="tl-date">01 – 02/2025</span>
+        </div>
+        <ul class="tl-list">
+          <li>Formation d'apprentis : commandes Linux, Apache, MySQL, WordPress, Python, SQL</li>
+          <li>Configuration réseau & switch avec Putty</li>
+          <li>Introduction à la certification CISSP, présentation Kali Linux & Parrot OS</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Support N2 & N3 — Orange Business</div>
+            <div class="tl-org">📍 Genas / Mions / Longvic</div>
+          </div>
+          <span class="tl-date">08 – 11/2024</span>
+        </div>
+        <ul class="tl-list">
+          <li>Administration Microsoft 365, Active Directory, Windows Server</li>
+          <li>Administration Exchange, Intune, Entra ID (Admin Center)</li>
+          <li>Diagnostic des incidents N2/N3 via TopDesk</li>
+          <li>Sauvegarde et sécurisation des données & boîtes aux lettres</li>
+          <li>Support à distance (TeamViewer, Dameware) pour utilisateurs internationaux</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Support N1 & N2 — Solvay</div>
+            <div class="tl-org">📍 Saint-Fons</div>
+          </div>
+          <span class="tl-date">01 – 08/2024</span>
+        </div>
+        <ul class="tl-list">
+          <li>Assistance utilisateurs & support à distance et sur site</li>
+          <li>Gestion des incidents via BMC Helix</li>
+          <li>Console d'accès sécurisé MFA (inwebo)</li>
+          <li>Administration Active Directory, serveur SCCM, cybersécurité</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Administrateur Systèmes Windows — CENSE</div>
+            <div class="tl-org">📍 Villeurbanne</div>
+          </div>
+          <span class="tl-date">07 – 12/2023</span>
+        </div>
+        <ul class="tl-list">
+          <li>Administration et résolution d'incidents techniques N1 & N2</li>
+          <li>Administration Office 365, certification ITIL 4 Foundation</li>
+          <li>Support utilisateurs & clients à distance</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Stagiaire Cloud Sys & Réseaux — IB CEGOS</div>
+            <div class="tl-org">📍 Lyon</div>
+          </div>
+          <span class="tl-date">01 – 06/2023</span>
+        </div>
+        <ul class="tl-list">
+          <li>Administration Linux & serveurs web, Active Directory</li>
+          <li>Outils DevOps Cloud : AWS, Azure, GCP</li>
+          <li>Scripting PowerShell & Python</li>
+        </ul>
+      </div>
+
+      <div class="tl-item fade-in">
+        <div class="tl-head">
+          <div>
+            <div class="tl-title">Prestataire Informatique Indépendant</div>
+            <div class="tl-org">📍 Lyon</div>
+          </div>
+          <span class="tl-date">2017 – 2022</span>
+        </div>
+        <ul class="tl-list">
+          <li>Maintenance PC & mobile, récupération de données</li>
+          <li>Installation de serveurs, déploiement & gestion de postes</li>
+          <li>Développement de sites web & applications</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-label fade-in">
+      <span class="sec-cmd">$ git log --oneline</span>
+      <span class="sec-title">Projets GitHub</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="projects-grid">
+      <a class="proj-card fade-in" href="https://github.com/Portfolio-med/Cybersecurity-incident-report-network-traffic-analysis" target="_blank">
+        <div class="proj-header">
+          <div class="proj-icon">🔍</div>
+          <div class="proj-name">Network Traffic Analysis</div>
+        </div>
+        <div class="proj-desc">Rapport d'incident cybersécurité basé sur l'analyse de trafic réseau suspect — identification des IOC et recommandations.</div>
+        <div class="proj-tags">
+          <span class="ptag">PCAP</span><span class="ptag">Wireshark</span><span class="ptag">Incident</span>
+        </div>
+      </a>
+      <a class="proj-card fade-in" href="https://github.com/Portfolio-med/DDOS-attaque" target="_blank">
+        <div class="proj-header">
+          <div class="proj-icon">⚡</div>
+          <div class="proj-name">DDoS Attack Analysis</div>
+        </div>
+        <div class="proj-desc">Étude et documentation d'une attaque DDoS — vecteurs, patterns de trafic et stratégies de mitigation.</div>
+        <div class="proj-tags">
+          <span class="ptag">DDoS</span><span class="ptag">Réseau</span><span class="ptag">Mitigation</span>
+        </div>
+      </a>
+      <a class="proj-card fade-in" href="https://github.com/Portfolio-med/Phishing-E-mail" target="_blank">
+        <div class="proj-header">
+          <div class="proj-icon">🎣</div>
+          <div class="proj-name">Phishing Email Forensics</div>
+        </div>
+        <div class="proj-desc">Analyse forensique d'emails de phishing — extraction des indicateurs de compromission et IOC.</div>
+        <div class="proj-tags">
+          <span class="ptag">Phishing</span><span class="ptag">IOC</span><span class="ptag">Forensics</span>
+        </div>
+      </a>
+      <a class="proj-card fade-in" href="https://github.com/Portfolio-med/Security-Audit-for-cybers-curit--certificate" target="_blank">
+        <div class="proj-header">
+          <div class="proj-icon">📋</div>
+          <div class="proj-name">Security Audit</div>
+        </div>
+        <div class="proj-desc">Audit de sécurité complet réalisé dans le cadre du certificat Google Cybersecurity — framework NIST.</div>
+        <div class="proj-tags">
+          <span class="ptag">Audit</span><span class="ptag">NIST</span><span class="ptag">Compliance</span>
+        </div>
+      </a>
+      <a class="proj-card fade-in" href="https://github.com/Portfolio-med/python-security-file" target="_blank">
+        <div class="proj-header">
+          <div class="proj-icon">🐍</div>
+          <div class="proj-name">Python Security File</div>
+        </div>
+        <div class="proj-desc">Script Python pour la gestion et la mise à jour sécurisée de fichiers de contrôle d'accès.</div>
+        <div class="proj-tags">
+          <span class="ptag">Python</span><span class="ptag">Scripting</span><span class="ptag">Access Control</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section id="certifications">
+  <div class="wrap">
+    <div class="sec-label fade-in">
+      <span class="sec-cmd">$ cat certs.json</span>
+      <span class="sec-title">Certifications</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="cert-grid">
+      <div class="cert-card fade-in">
+        <div class="cert-badge">ITIL 4</div>
+        <div>
+          <div class="cert-name">ITIL 4 Foundation</div>
+          <div class="cert-org">PeopleCert / Axelos</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-badge">Cisco</div>
+        <div>
+          <div class="cert-name">CyberOps — Sécurité Réseau & Hacking Éthique</div>
+          <div class="cert-org">Cisco Networking Academy</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-badge">Google</div>
+        <div>
+          <div class="cert-name">Google Cybersecurity Certificate</div>
+          <div class="cert-org">Google · Coursera</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-badge">CISSP</div>
+        <div>
+          <div class="cert-name">CISSP — en cours de préparation</div>
+          <div class="cert-org">(ISC)²</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORMATION -->
+<section id="education">
+  <div class="wrap">
+    <div class="sec-label fade-in">
+      <span class="sec-cmd">$ cat formation.md</span>
+      <span class="sec-title">Formation</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="edu-grid">
+      <div class="edu-card fade-in">
+        <div class="edu-date">2020 – 2023</div>
+        <div class="edu-degree">Bachelor — Administration Cloud Systèmes & Réseaux</div>
+        <div class="edu-school">IB CEGOS · Lyon</div>
+      </div>
+      <div class="edu-card fade-in">
+        <div class="edu-date">2017 – 2019</div>
+        <div class="edu-degree">Licence Pro — Développement d'applications Internet/Intranet</div>
+        <div class="edu-school">Université d'Auvergne · Clermont-Ferrand</div>
+      </div>
+      <div class="edu-card fade-in">
+        <div class="edu-date">2014 – 2016</div>
+        <div class="edu-degree">Niveau Ingénieur — Génie Logiciel & SI</div>
+        <div class="edu-school">ISIMA · Clermont-Ferrand</div>
+      </div>
+      <div class="edu-card fade-in">
+        <div class="edu-date">2012 – 2014</div>
+        <div class="edu-degree">DUT — Informatique / Génie Logiciel</div>
+        <div class="edu-school">ESTO · Maroc</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap">
+    <div class="sec-label fade-in">
+      <span class="sec-cmd">$ ping mohamed</span>
+      <span class="sec-title">Contact</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="contact-box fade-in">
+      <p class="contact-intro">
+        Disponible pour des opportunités en cybersécurité, administration système ou support avancé N2/N3.<br>
+        N'hésitez pas à me contacter — je réponds rapidement.
+      </p>
+      <div class="contact-info">
+        <div class="contact-item">
+          <span class="contact-label">Email</span>
+          <a class="contact-val" href="mailto:moh.med994@yahoo.com">moh.med994@yahoo.com</a>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Téléphone</span>
+          <a class="contact-val" href="tel:+33754015259">+33 7 54 01 52 59</a>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Localisation</span>
+          <span class="contact-val">Meyzieu, France</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Mobilité</span>
+          <span class="contact-val">Permis B + véhicule personnel</span>
+        </div>
+      </div>
+      <div class="contact-btns">
+        <a class="btn-primary" href="mailto:moh.med994@yahoo.com">Envoyer un email</a>
+        <a class="btn-ghost" href="https://www.linkedin.com/in/mohamed-el-horri-79104a215/" target="_blank">LinkedIn ↗</a>
+        <a class="btn-ghost" href="https://github.com/portfolio-med" target="_blank">GitHub ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  // Mohamed El Horri · The Iceberg · 2026 &nbsp;—&nbsp; Sysadmin · SOC N1 · Support N1/N2/N3
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
